@@ -1,81 +1,105 @@
 #include<stdio.h>
 #include<string.h>
 #include<conio.h>
+#define MAX_PROC_CNT    10
 
-char szProcName[10][10];
-int arriArvlTime[10], bur[10];
-char t[10];
+struct ProcInfo
+{
+    int iArvlTime;
+    int iBurstTime;
+    char szProcName[10];
+}procInfo[MAX_PROC_CNT];
+
+
+ 
 int iNoOfProcess;
 
 void SortByAT()
 {
-    int i,j;
-    int temp;
+    int i;
+    int j;
+    int iTemp;
+    char szTempProcName[10];
     for(i=0; i<iNoOfProcess; i++)
     {
         for(j=0; j<iNoOfProcess; j++)
         {
-            if(arriArvlTime[i]<arriArvlTime[j])
+            if(procInfo[i].iArvlTime < procInfo[j].iArvlTime)
             {
-                temp=arriArvlTime[i];
-                arriArvlTime[i]=arriArvlTime[j];
-                arriArvlTime[j]=temp;
-                temp=bur[i];
-                bur[i]=bur[j];
-                bur[j]=temp;
-                strcpy(t,szProcName[i]);
-                strcpy(szProcName[i],szProcName[j]);
-                strcpy(szProcName[j],t);
+                iTemp=procInfo[i].iArvlTime;
+                procInfo[i].iArvlTime = procInfo[j].iArvlTime;
+                procInfo[j].iArvlTime=iTemp;
+            
+                iTemp=procInfo[i].iBurstTime;
+                procInfo[i].iBurstTime=procInfo[j].iBurstTime;
+                procInfo[j].iBurstTime=iTemp;
+            
+                strcpy(szTempProcName,procInfo[i].szProcName);
+                strcpy(procInfo[i].szProcName,procInfo[j].szProcName);
+                strcpy(procInfo[j].szProcName,szTempProcName);
             }
  
         }
     }
 }
 
-main()
+
+void AcceptProcInfo()
 {
-    int star[10],finish[10],tat[10],wt[10],i;
-    int totwt=0,tottat=0;
-//clrscr();
+    int i;
     printf("Enter the number of processes:");
     //scanf("%d",&iNoOfProcess);
     iNoOfProcess = 3;
-    //for(i=0; i<iNoOfProcess; i++)
-    //{
-        //printf("Enter the ProcessName, arriArvlTimeival Time& Burst Time:");
-        //scanf("%s%d%d",&szProcName[i],&arriArvlTime[i],&bur[i]);
-    //}
+    /*for(i=0; i<iNoOfProcess; i++)
+    {
+        printf("Enter the ProcessName, arriArvlTimeival Time& Burst Time:");
+        scanf("%s%d%d",procInfo[i].szProcName,&procInfo[i].iArvlTime, &procInfo[i].iBurstTime);
+    }*/
 
-        strcpy(szProcName[0], "p1");
-        arriArvlTime[0] = 3;
-        bur[0] = 5;
+        strcpy(procInfo[0].szProcName, "p1");
+        procInfo[0].iArvlTime = 3;
+        procInfo[0].iBurstTime = 5;
 
-        strcpy(szProcName[1], "p2");
-        arriArvlTime[1] = 4;
-        bur[1] = 6; 
+        strcpy(procInfo[1].szProcName, "p2");
+        procInfo[1].iArvlTime = 4;
+        procInfo[1].iBurstTime = 6; 
 
-        strcpy(szProcName[2], "p3");
-        arriArvlTime[2] = 2;
-        bur[2] = 7;         
+        strcpy(procInfo[2].szProcName, "p3");
+        procInfo[2].iArvlTime = 2;
+        procInfo[2].iBurstTime = 7;         
+}
 
+main()
+{
+    int i;
+    int star[MAX_PROC_CNT],finish[MAX_PROC_CNT],tat[MAX_PROC_CNT],wt[MAX_PROC_CNT];
+    int totwt=0,tottat=0;
+//clrscr();
 
+    AcceptProcInfo();
     SortByAT();
-    // Calculate waiting and turn around time.
+    // Calculate start time, waiting and turn around time.
     for(i=0; i<iNoOfProcess; i++)
     {
         if(i==0)
-            star[i]=arriArvlTime[i];
+        {
+            star[i]= procInfo[i].iArvlTime;
+        }
         else
+        {
             star[i]=finish[i-1];
-        wt[i]=star[i]-arriArvlTime[i];
-        finish[i]=star[i]+bur[i];
-        tat[i]=finish[i]-arriArvlTime[i];
+        }
+
+        wt[i]=star[i]- procInfo[i].iArvlTime;
+        finish[i]=star[i]+ procInfo[i].iBurstTime;
+        tat[i]=finish[i]- procInfo[i].iArvlTime;
     }
 
-    printf("\nPName arriArvlTimetime Burtime WaitTime StartTime TAT Finish");
+    printf("\nPName ArivalTime Burstime WaitTime StartTime TAT Finish");
     for(i=0; i<iNoOfProcess; i++)
     {
-        printf("\n%s\t%3d\t%3d\t%3d\t%3d\t%6d\t%6d",szProcName[i],arriArvlTime[i],bur[i],wt[i],star[i],tat[i],finish[i]);
+        printf("\n%s\t%3d\t%3d\t%3d\t%3d\t%6d\t%6d",procInfo[i].szProcName, procInfo[i].iArvlTime,
+        procInfo[i].iBurstTime, wt[i],star[i],tat[i],finish[i]);
         totwt+=wt[i];
         tottat+=tat[i];
     }
