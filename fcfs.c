@@ -1,6 +1,5 @@
 #include<stdio.h>
 #include<string.h>
-#include<conio.h>
 #define MAX_PROC_CNT    10
 
 struct ProcInfo
@@ -8,6 +7,10 @@ struct ProcInfo
     int iArvlTime;
     int iBurstTime;
     char szProcName[10];
+    int iStartTime;
+    int iFinishTime;
+    int iTAT;
+    int iWaitTime;
 }procInfo[MAX_PROC_CNT];
 
 
@@ -18,26 +21,18 @@ void SortByAT()
 {
     int i;
     int j;
-    int iTemp;
-    char szTempProcName[10];
     for(i=0; i<iNoOfProcess; i++)
     {
         for(j=0; j<iNoOfProcess; j++)
         {
             if(procInfo[i].iArvlTime < procInfo[j].iArvlTime)
             {
-                iTemp=procInfo[i].iArvlTime;
-                procInfo[i].iArvlTime = procInfo[j].iArvlTime;
-                procInfo[j].iArvlTime=iTemp;
-            
-                iTemp=procInfo[i].iBurstTime;
-                procInfo[i].iBurstTime=procInfo[j].iBurstTime;
-                procInfo[j].iBurstTime=iTemp;
-            
-                strcpy(szTempProcName,procInfo[i].szProcName);
-                strcpy(procInfo[i].szProcName,procInfo[j].szProcName);
-                strcpy(procInfo[j].szProcName,szTempProcName);
-            }
+		struct ProcInfo tempProcInfo;
+		tempProcInfo = procInfo[i];
+		procInfo[i] = procInfo[j];
+		procInfo[j] = tempProcInfo;
+
+          }
  
         }
     }
@@ -69,43 +64,61 @@ void AcceptProcInfo()
         procInfo[2].iBurstTime = 7;         
 }
 
-main()
+void DisplayProcInfo()
 {
     int i;
-    int star[MAX_PROC_CNT],finish[MAX_PROC_CNT],tat[MAX_PROC_CNT],wt[MAX_PROC_CNT];
-    int totwt=0,tottat=0;
-//clrscr();
+    printf("\nPName ArivalTime Burstime WaitTime StartTime TAT Finish");
+    for(i=0; i<iNoOfProcess; i++)
+    {
+        printf("\n%s\t%3d\t%3d\t%3d\t%3d\t%6d\t%6d",procInfo[i].szProcName, procInfo[i].iArvlTime,
+        procInfo[i].iBurstTime, procInfo[i].iWaitTime, procInfo[i].iStartTime,
+procInfo[i].iTAT, procInfo[i].iFinishTime);
+    }
+}
 
-    AcceptProcInfo();
-    SortByAT();
+void ComputeProcTimes()
+{
+    int i;
     // Calculate start time, waiting and turn around time.
     for(i=0; i<iNoOfProcess; i++)
     {
         if(i==0)
         {
-            star[i]= procInfo[i].iArvlTime;
+            procInfo[i].iStartTime= procInfo[i].iArvlTime;
         }
         else
         {
-            star[i]=finish[i-1];
+            procInfo[i].iStartTime= procInfo[i - 1].iFinishTime;
         }
 
-        wt[i]=star[i]- procInfo[i].iArvlTime;
-        finish[i]=star[i]+ procInfo[i].iBurstTime;
-        tat[i]=finish[i]- procInfo[i].iArvlTime;
+        procInfo[i].iWaitTime = procInfo[i].iStartTime - procInfo[i].iArvlTime;
+        procInfo[i].iFinishTime = procInfo[i].iStartTime + procInfo[i].iBurstTime;
+        procInfo[i].iTAT = procInfo[i].iFinishTime - procInfo[i].iArvlTime;
     }
 
-    printf("\nPName ArivalTime Burstime WaitTime StartTime TAT Finish");
+}
+
+
+void main()
+{
+    int i;
+    int totwt=0;
+    int tottat=0;
+
+    AcceptProcInfo();
+    SortByAT();
+
+    ComputeProcTimes();
+    DisplayProcInfo();
+
     for(i=0; i<iNoOfProcess; i++)
     {
-        printf("\n%s\t%3d\t%3d\t%3d\t%3d\t%6d\t%6d",procInfo[i].szProcName, procInfo[i].iArvlTime,
-        procInfo[i].iBurstTime, wt[i],star[i],tat[i],finish[i]);
-        totwt+=wt[i];
-        tottat+=tat[i];
+        totwt+= procInfo[i].iWaitTime;
+        tottat+= procInfo[i].iTAT;
     }
     
     printf("\nAverage Waiting time:%f",(float)totwt/iNoOfProcess);
     printf("\nAverage Turn Around Time:%f",(float)tottat/iNoOfProcess);
-    getch();
+    getchar();
     return 0;
 }
